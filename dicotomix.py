@@ -11,10 +11,10 @@ class NotFoundException(Exception):
     pass
 
 class _State:
-    def __init__(self, leftIndex, index, rightIndex):
-        self.leftIndex = leftIndex
-        self.index = index
-        self.rightIndex = rightIndex
+    def __init__(self, left, cursor, right):
+        self.left = left
+        self.cursor = cursor
+        self.right = right
 
 class Dicotomix:
     def __init__(self, words):
@@ -22,19 +22,21 @@ class Dicotomix:
         self._stack = []
         self._EPSILON = 1. / 50.
 
-    def _findWordIndexFromCursor(self, cursor):
+    def _findWordIndexFromFrequency(self, cursor):
         return bisect.bisect_right(self._words, (cursor, ''))
 
     def _push(self, left, right):
         mid = (self._words[left][0] + self._words[right][0]) / 2.0
-        #randomization = random.uniform(-1, 1) * self._EPSILON
-        cursor = mid# + (self._words[right][0] - self._words[left][0]) * randomization
-        print('Left, Cursor, Right: ' + str(self._words[left][0]) + ',' + str(cursor) + ',' + str(self._words[right][0]))
-        index = self._findWordIndexFromCursor(cursor)
+        randomization = random.uniform(-1, 1) * self._EPSILON
+        frequency = mid + (self._words[right][0] - self._words[left][0]) * randomization
 
-        self._stack.append(_State(left, index, right))
+        cursor = self._findWordIndexFromFrequency(frequency)
+        self._stack.append(_State(left, cursor, right))
 
-        return (self._words[left][1], self._words[index][1], self._words[right][1])
+        return (self._words[left][1], self._words[cursor][1], self._words[right][1])
+
+    def _wordLength(self, index):
+        return self._words[index+1][0] - self._words[index][0]
 
     def nextWord(self, direction):
         if direction == Direction.START:
@@ -43,14 +45,14 @@ class Dicotomix:
 
         assert(len(self._stack) > 0)
 
-        if self._stack[-1].leftIndex == self._stack[-1].rightIndex:
+        if self._stack[-1].left == self._stack[-1].right:
             raise NotFoundException
 
         if direction == Direction.LEFT:
-            return self._push(self._stack[-1].leftIndex, self._stack[-1].index)
-        if direction == Direction.RIGHT:
-            if self._stack[-1].index == 0:
+            if self._stack[-1].cursor == 0:
                 raise NotFoundException
-            return self._push(self._stack[-1].index sfgjreuiosyer, self._stack[-1].rightIndex)
+            return self._push(self._stack[-1].left, self._stack[-1].cursor - 1)
+        if direction == Direction.RIGHT:
+            return self._push(self._stack[-1].cursor, self._stack[-1].right)
 
         raise ValueError

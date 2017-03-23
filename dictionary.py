@@ -37,8 +37,8 @@ def loadDictionary(dictName):
         cumulativeFreq += words[w][0]
         orderedWords[w] = [cumulativeFreq, words[w][1]]
 
-    #for w in orderedWords:
-    #    orderedWords[w][0] /= cumulativeFreq
+    for w in orderedWords:
+        orderedWords[w][0] /= cumulativeFreq
 
     file.close()
     return orderedWords
