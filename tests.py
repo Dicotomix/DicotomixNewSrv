@@ -6,7 +6,7 @@ def testWord(main, targetWord):
 
     try:
         while True:
-            #print('Proposed: ' + left + ', ' + proposedWord + ', ' + right)
+            print('Proposed: ' + left + ', ' + proposedWord + ', ' + right)
             if proposedWord == targetWord:
                 return (True, count)
 
@@ -30,4 +30,5 @@ def testAll(main, feed):
             exit(1)
         else:
             print(w[1] + ': ' + str(count))
+            exit(1)
     print('Mean: ' + str(total / len(feed)))

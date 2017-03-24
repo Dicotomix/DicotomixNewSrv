@@ -56,3 +56,14 @@ class Dicotomix:
             return self._push(self._stack[-1].cursor, self._stack[-1].right)
 
         raise ValueError
+
+    def discard(self):
+        assert(len(self._stack) > 0)
+
+        if len(self._stack) > 1:
+            self._stack.pop()
+
+        left = self._stack[-1].left
+        cursor = self._stack[-1].cursor
+        right = self._stack[-1].right
+        return (self._words[left][1], self._words[cursor][1], self._words[right][1])

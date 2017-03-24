@@ -2,14 +2,14 @@ import unidecode
 import re
 from collections import *
 
-def removeDiacritics(word):
+def _removeDiacritics(word):
     return unidecode.unidecode(word)
 
-def removeDashes(word):
+def _removeDashes(word):
     return re.sub(r"[' .-]+", r"", word)
 
 def normalize(word):
-    return removeDashes(removeDiacritics(word))
+    return _removeDashes(_removeDiacritics(word))
 
 def loadDictionary(dictName):
     file = open(dictName, 'r')
