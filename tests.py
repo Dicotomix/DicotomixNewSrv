@@ -6,7 +6,7 @@ def testWord(main, targetWord):
 
     try:
         while True:
-            print('Proposed: ' + left + ', ' + proposedWord + ', ' + right)
+            #print('Proposed: ' + left + ', ' + proposedWord + ', ' + right)
             if proposedWord == targetWord:
                 return (True, count)
 
