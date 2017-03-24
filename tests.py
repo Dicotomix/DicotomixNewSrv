@@ -30,5 +30,4 @@ def testAll(main, feed):
             exit(1)
         else:
             print(w[1] + ': ' + str(count))
-            exit(1)
     print('Mean: ' + str(total / len(feed)))
