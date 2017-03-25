@@ -18,7 +18,8 @@ class _State:
 
 class Dicotomix:
     def __init__(self, words):
-        self._words = words # words is a (cumulativeFrequency, word) list
+        self._words = words # words is a (cumulative frequency, word) list
+        self._words.insert(0, (0., self._words[0][1])) # add a dummy word with frequency 0. for symmetry
         self._stack = []
         self._EPSILON = 1. / 50.
 

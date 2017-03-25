@@ -11,6 +11,7 @@ def _removeDashes(word):
 def normalize(word):
     return _removeDashes(_removeDiacritics(word))
 
+# return an ordered Dictionary (normalized word) => [cumulative frequency, [associated words]]
 def loadDictionary(dictName):
     file = open(dictName, 'r')
     lines = file.read()
@@ -25,11 +26,12 @@ def loadDictionary(dictName):
 
         wordRepr = normalize(word)
 
-        if not wordRepr in words:
+        if wordRepr not in words:
             words[wordRepr] = [freq, [word]]
         else:
             words[wordRepr][0] += freq
-            words[wordRepr][1].append(word)
+            if word not in words[wordRepr][1]:
+                words[wordRepr][1].append(word)
 
     orderedWords = OrderedDict()
     cumulativeFreq = 0.
