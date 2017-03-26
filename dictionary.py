@@ -6,7 +6,7 @@ def _removeDiacritics(word):
     return unidecode.unidecode(word)
 
 def _removeDashes(word):
-    return re.sub(r"[' .-]+", r"", word)
+    return re.sub(r"[^a-zA-Z]+", r"", word)
 
 def normalize(word):
     return _removeDashes(_removeDiacritics(word))
@@ -19,7 +19,7 @@ def loadDictionary(dictName):
     words = { }
 
     for line in lines[1:]:
-        parameters = list(filter(lambda x: x != '', line.split(';')))
+        parameters = list(filter(lambda x: x != '', line.split('|')))
 
         word = parameters[0]
         freq = float(parameters[-1])
