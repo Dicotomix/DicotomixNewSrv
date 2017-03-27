@@ -46,7 +46,7 @@ class Dicotomix:
 
         assert(len(self._stack) > 0)
 
-        if self._stack[-1].left == self._stack[-1].right:
+        if self._words[self._stack[-1].left][1] == self._words[self._stack[-1].right][1]:
             raise NotFoundException
 
         if direction == Direction.LEFT:
