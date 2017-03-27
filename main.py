@@ -11,6 +11,7 @@ SERVER_ADDRESS = ('localhost', 5005)
 words = dictionary.loadDictionary('LexiqueCompletNormalise.csv')
 print('Dictionary loaded')
 
+# extract (cumulative frequency, word) from the whole dictionary
 feed = list(map(lambda x: (x[1][0], x[0]), words.items()))
 
 if ENABLE_TESTS:

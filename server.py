@@ -49,8 +49,8 @@ class Server(asyncio.Protocol):
         data = '\n'.join(self.words[word][1])
         data = data.encode('utf8')
 
-        self.transport.write(struct.pack(">I", len(data)))
-        self.transport.write(struct.pack(">I", prefix))
+        self.transport.write(struct.pack(">h", len(data)))
+        self.transport.write(struct.pack(">h", prefix))
         self.transport.write(data)
 
     def connection_lost(self, error):
