@@ -23,6 +23,8 @@ class Dicotomix:
         self._stack = []
         self._EPSILON = 1. / 50.
         self._letters = letters
+        if self._letters != None:
+            self._words.insert(0, (0., self._letters[0][1]))
 
     def _findWordIndexFromFrequency(self, cursor):
         return bisect.bisect_right(self._words, (cursor, ''))
@@ -71,6 +73,8 @@ class Dicotomix:
         return (self._words[left][1], self._words[cursor][1], self._words[right][1])
 
     def toggleSpelling(self):
+        if self._letters == None:
+            return
         self._stack = []
         temp = self._words
         self._words = self._letters

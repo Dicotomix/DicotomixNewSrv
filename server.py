@@ -32,11 +32,12 @@ class _NetworkState:
 
 
 class Server(asyncio.Protocol):
-    def __init__(self, words, feed):
-        self.dicotomix = Dicotomix(feed)
+    def __init__(self, words, feed_words, feed_letters):
+        self.dicotomix = Dicotomix(feed_words, feed_letters)
         self.words = words
         self.buffer = []
         self.state = _NetworkState()
+        self.spelling = False
 
     def connection_made(self, transport):
         self.transport = transport
@@ -82,10 +83,15 @@ class Server(asyncio.Protocol):
             elif self.state.header == 4:
                 left, word, right = self.dicotomix.discard()
             elif self.state.header == 5: # spelling mode
+                self.spelling = not self.spelling
                 self.dicotomix.toggleSpelling()
-                left, word, right = self.dicotomix.nextWord(Direction.START)
+                return
         except NotFoundException:
-            left, word, right = self.dicotomix.nextWord(Direction.START)
+            if self.spelling:
+                left, word, right = self.dicotomix.nextWord(Direction.START)
+            else:
+                self.dicotomix.toggleSpelling()
+                self.spelling = True
 
         print('{}, {}, {}'.format(left, word, right))
 
