@@ -5,7 +5,7 @@ import functools
 from server import Server
 from dicotomix import Dicotomix
 
-ENABLE_TESTS = True
+ENABLE_TESTS = False
 SERVER_ADDRESS = ('localhost', 5005)
 
 words, letters = dictionary.loadDictionary('LexiqueCompletNormalise.csv')
