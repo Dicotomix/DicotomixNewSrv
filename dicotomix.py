@@ -68,3 +68,6 @@ class Dicotomix:
         cursor = self._stack[-1].cursor
         right = self._stack[-1].right
         return (self._words[left][1], self._words[cursor][1], self._words[right][1])
+
+    def toggleSpelling(self):
+        
