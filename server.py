@@ -98,7 +98,7 @@ class Server(asyncio.Protocol):
         prefix = _boundPrefix(left, right)
         print('Prefix: {}'.format(prefix))
 
-        data = '\n'.join(self.words[word][1])
+        data = '\n'.join(filter(lambda x: x[0] != '[' or not self.spelling, self.words[word][1]))
         data = data.encode('utf8')
 
         self.transport.write(struct.pack(">h", len(data)))
