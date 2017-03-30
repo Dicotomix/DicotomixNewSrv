@@ -17,11 +17,12 @@ class _State:
         self.right = right
 
 class Dicotomix:
-    def __init__(self, words):
+    def __init__(self, words, letters = None):
         self._words = words # words is a (cumulative frequency, word) list
         self._words.insert(0, (0., self._words[0][1])) # add a dummy word with frequency 0. for symmetry
         self._stack = []
         self._EPSILON = 1. / 50.
+        self._letters = letters
 
     def _findWordIndexFromFrequency(self, cursor):
         return bisect.bisect_right(self._words, (cursor, ''))
@@ -70,4 +71,7 @@ class Dicotomix:
         return (self._words[left][1], self._words[cursor][1], self._words[right][1])
 
     def toggleSpelling(self):
-        
+        self._stack = []
+        temp = self._words
+        self._words = self._letters
+        self._letters = temp

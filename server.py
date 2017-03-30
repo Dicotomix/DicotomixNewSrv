@@ -82,8 +82,8 @@ class Server(asyncio.Protocol):
             elif self.state.header == 4:
                 left, word, right = self.dicotomix.discard()
             elif self.state.header == 5: # spelling mode
-                pass
-
+                self.dicotomix.toggleSpelling()
+                left, word, right = self.dicotomix.nextWord(Direction.START)
         except NotFoundException:
             left, word, right = self.dicotomix.nextWord(Direction.START)
 
