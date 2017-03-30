@@ -20,7 +20,7 @@ if ENABLE_TESTS:
 eventLoop = asyncio.get_event_loop()
 
 serverFactory = functools.partial(Server, words = words, feed = feed)
-factoryCoroutine = eventLoop.create_server(serverFactory, *SERVER_ADDRESS)
+factoryCoroutine = eventLoop.create_server(serverFactory, *SERVER_ADDRESS, reuse_address=True)
 server = eventLoop.run_until_complete(factoryCoroutine)
 
 print('Listening on {} port {}'.format(*SERVER_ADDRESS))
