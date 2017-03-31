@@ -24,7 +24,7 @@ class Dicotomix:
         self._EPSILON = 1. / 50.
         self._letters = letters
         if self._letters != None:
-            self._words.insert(0, (0., self._letters[0][1]))
+            self._letters.insert(0, (0., self._letters[0][1]))
 
     def _findWordIndexFromFrequency(self, cursor):
         return bisect.bisect_right(self._words, (cursor, ''))

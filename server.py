@@ -90,8 +90,11 @@ class Server(asyncio.Protocol):
             if self.spelling:
                 left, word, right = self.dicotomix.nextWord(Direction.START)
             else:
-                self.dicotomix.toggleSpelling()
-                self.spelling = True
+                dummy = 'a'.encode('utf8')
+                self.transport.write(struct.pack(">h", len(dummy)))
+                self.transport.write(struct.pack(">h", -1)) # ask UI to start spelling mode
+                self.transport.write(dummy)
+                return
 
         print('{}, {}, {}'.format(left, word, right))
 

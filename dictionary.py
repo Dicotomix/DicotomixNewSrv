@@ -29,7 +29,11 @@ def loadDictionary(dictName):
 
         word = parameters[0]
         isLetter = parameters[2] == 'LETTER'
-        wordRepr = normalize(word)
+
+        if parameters[2] != 'PONC':
+            wordRepr = normalize(word)
+        else:
+            wordRepr = '.'
 
         if not isLetter:
             freq = float(parameters[-1])
