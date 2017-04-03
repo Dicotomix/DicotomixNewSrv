@@ -87,8 +87,8 @@ class Server(asyncio.Protocol):
             elif self.state.header == 4:
                 left, word, right = self.dicotomix.discard()
             elif self.state.header == 5: # spelling mode
-                self.spelling = not self.spelling
                 self.dicotomix.toggleSpelling()
+                self.spelling = not self.spelling
                 return
             elif self.state.header == 6: # add word to the dictionary
                 onlyfiles = [f for f in listdir(DATA_PATH) if isfile(join(mypath, f))]
@@ -123,6 +123,8 @@ class Server(asyncio.Protocol):
                 self.transport.write(dummy)
                 return
         except OrderException:
+            return
+        except AttributeError:
             return
 
         print('{}, {}, {}'.format(left, word, right))
