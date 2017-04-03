@@ -10,6 +10,9 @@ class Direction(Enum):
 class NotFoundException(Exception):
     pass
 
+class OrderException(Exception):
+    pass
+
 class _State:
     def __init__(self, left, cursor, right):
         self.left = left
@@ -47,7 +50,8 @@ class Dicotomix:
             self._stack = []
             return self._push(0, -1)
 
-        assert(len(self._stack) > 0)
+        if len(self._stack) == 0:
+            raise OrderException
 
         if self._words[self._stack[-1].left][1] == self._words[self._stack[-1].right][1]:
             raise NotFoundException
@@ -62,7 +66,8 @@ class Dicotomix:
         raise ValueError
 
     def discard(self):
-        assert(len(self._stack) > 0)
+        if len(self._stack) == 0:
+            raise OrderException
 
         if len(self._stack) > 1:
             self._stack.pop()
