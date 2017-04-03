@@ -98,8 +98,8 @@ class Server(asyncio.Protocol):
                     if ext == 'data':
                         self.users.append(name)
                 data = '\n'.join(self.users).encode('utf8')
-                self.transport.write(struct.pack('>h'), len(data))
-                self.transport.write(struct.pack('>h'), -1)
+                self.transport.write(struct.pack('>h', len(data)))
+                self.transport.write(struct.pack('>h', 0))
                 self.transport.write(data)
                 return
             elif self.state.header == 7: # get user name
