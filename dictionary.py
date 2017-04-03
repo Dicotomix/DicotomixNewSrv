@@ -38,7 +38,7 @@ def loadDictionary(dictName):
         if not isLetter:
             freq = float(parameters[-1])
         else:
-            freq = 0 # will be set later
+            freq = 0
             letters[word] = float(parameters[-1])
             word = '[{}'.format(word)
 
@@ -51,8 +51,8 @@ def loadDictionary(dictName):
                 words[wordRepr][1].append(word)
 
     # set letter frequencies inside the words dictionary
-    for i in range(ord('b'), ord('z') + 1):
-        words[chr(i)][0] += words['a'][0]
+    #for i in range(ord('b'), ord('z') + 1):
+    #    words[chr(i)][0] += words['a'][0]
 
     # compute words cumulative frequencies
     orderedWords = OrderedDict()
