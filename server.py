@@ -42,6 +42,7 @@ class Server(asyncio.Protocol):
         self.buffer = []
         self.state = _NetworkState()
         self.spelling = False
+        self.users = []
 
     def connection_made(self, transport):
         self.transport = transport
@@ -92,19 +93,21 @@ class Server(asyncio.Protocol):
                 return
             elif self.state.header == 6: # add word to the dictionary
                 onlyfiles = [f for f in listdir(DATA_PATH) if isfile(join(mypath, f))]
-                names = []
                 for f in onlyfiles:
                     name, ext = f.split('.')
                     if ext == 'data':
-                        names.append(name)
-                data = '\n'.join(names).encode('utf8')
+                        self.users.append(name)
+                data = '\n'.join(self.users).encode('utf8')
                 self.transport.write(struct.pack('>h'), len(data))
                 self.transport.write(struct.pack('>h'), -1)
                 self.transport.write(data)
                 return
             elif self.state.header == 7: # get user name
-                words, letters =
-                    dictionary.loadDictionary(DATA_PATH + 'LexiqueCompletNormalise.csv')
+                if self.state.str not in self.users:
+                    print('Create user ' + self.state.str)
+
+                self.users = self.state.str
+                words, letters = dictionary.loadDictionary(DATA_PATH + 'lexique.csv')
 
                 # extract (cumulative frequency, word) from the whole dictionary
                 feed_words = list(map(lambda x: (x[1][0], x[0]), words.items()))
