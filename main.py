@@ -1,3 +1,4 @@
+#!/usr/bin/python3
 import dictionary
 import tests
 import asyncio
