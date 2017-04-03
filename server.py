@@ -120,6 +120,7 @@ class Server(asyncio.Protocol):
                     name, ext = f.split('.')
                     if ext == 'data':
                         self.users.append(name)
+                self.users.append("[new]")
                 data = '\n'.join(self.users).encode('utf8')
                 self.transport.write(struct.pack('>h', len(data)))
                 self.transport.write(struct.pack('>h', 0))
