@@ -92,7 +92,7 @@ class Server(asyncio.Protocol):
                 self.spelling = not self.spelling
                 return
             elif self.state.header == 6: # add word to the dictionary
-                onlyfiles = [f for f in listdir(DATA_PATH) if isfile(join(mypath, f))]
+                onlyfiles = [f for f in listdir(DATA_PATH) if isfile(join(DATA_PATH, f))]
                 for f in onlyfiles:
                     name, ext = f.split('.')
                     if ext == 'data':
