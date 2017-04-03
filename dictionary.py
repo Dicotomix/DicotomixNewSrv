@@ -11,9 +11,21 @@ def _removeDashes(word):
 def normalize(word):
     return _removeDashes(_removeDiacritics(word))
 
+def computeFeed(words):
+    feed = list(map(lambda w: [w[1][0], w[0]], words.items()))
+    cumulativeFreq = 0.
+    for i in range(0, len(feed)):
+        cumulativeFreq += feed[i][0]
+        feed[i][0] = cumulativeFreq
+
+    for i in range(0, len(feed)):
+        feed[i][0] /= cumulativeFreq
+
+    return list(map(lambda w: (w[0], w[1]), feed))
+
 # return:
-# - an ordered Dictionary (normalized word) => [cumulative frequency, [associated words]]
-# - an ordered Dictionary (letter) => cumulative frequency
+# - an ordered Dictionary (normalized word) => [frequency, [associated words]]
+# - an ordered Dictionary (letter) => [frequency, []]
 def loadDictionary(dictName, userName):
     file = open(dictName, 'r')
     lines = file.read()
@@ -22,7 +34,7 @@ def loadDictionary(dictName, userName):
     file2 = open(userName, 'r')
     lines2 = file2.read()
     lines += list(filter(lambda x: x != '', lines2.split('\n')))
-    
+
     letters = { }
     words = { }
 
@@ -41,7 +53,7 @@ def loadDictionary(dictName, userName):
             freq = float(parameters[-1])
         else:
             freq = 0
-            letters[word] = float(parameters[-1])
+            letters[word] = [float(parameters[-1]), []]
             word = '[{}'.format(word)
 
 
@@ -52,30 +64,13 @@ def loadDictionary(dictName, userName):
             if word not in words[wordRepr][1]:
                 words[wordRepr][1].append(word)
 
-    # set letter frequencies inside the words dictionary
-    #for i in range(ord('b'), ord('z') + 1):
-    #    words[chr(i)][0] += words['a'][0]
-
-    # compute words cumulative frequencies
     orderedWords = OrderedDict()
-    cumulativeFreq = 0.
     for w in sorted(words.keys()):
-        cumulativeFreq += words[w][0]
-        orderedWords[w] = [cumulativeFreq, words[w][1]]
+        orderedWords[w] = [words[w][0], words[w][1]]
 
-    # normalize frequencies
-    for w in orderedWords:
-        orderedWords[w][0] /= cumulativeFreq
-
-    # same for letters
     orderedLetters = OrderedDict()
-    cumulativeFreq = 0.
     for l in sorted(letters.keys()):
-        cumulativeFreq += letters[l]
-        orderedLetters[l] = cumulativeFreq
-
-    for l in orderedLetters:
-        orderedLetters[l] /= cumulativeFreq
+        orderedLetters[l] = [letters[l][0], []]
 
     file.close()
     return orderedWords, orderedLetters

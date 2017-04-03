@@ -29,6 +29,10 @@ class Dicotomix:
         if self._letters != None:
             self._letters.insert(0, (0., self._letters[0][1]))
 
+    def reinit(self, words):
+        self._words = words
+        self._words.insert(0, (0., self._words[0][1]))
+
     def _findWordIndexFromFrequency(self, cursor):
         return bisect.bisect_right(self._words, (cursor, ''))
 

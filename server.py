@@ -1,6 +1,8 @@
 import asyncio
 import struct
 import dictionary
+import datetime
+from collections import *
 from os import listdir
 from os.path import isfile, join
 from enum import Enum
@@ -44,6 +46,16 @@ class Server(asyncio.Protocol):
         self.spelling = False
         self.users = []
         self.login = None
+        self.logFile = None
+
+    def _log(self, header, message):
+        if self.logFile == None:
+            return
+        self.logFile.write('{:%Y-%m-%d %H:%M:%S}|{}|{}\n'.format(
+            datetime.datetime.now(),
+            header,
+            message
+        ))
 
     def connection_made(self, transport):
         self.transport = transport
@@ -58,15 +70,17 @@ class Server(asyncio.Protocol):
     def consume_buffer(self):
         if self.state.state() == _StateID.HEADER and len(self.buffer) >= 1:
             self.state.header = self.buffer[0]
-            print('Received header {}'.format(self.state.header))
+            self._log('NET', 'header:{}'.format(self.state.header))
             return True
 
         elif self.state.state() == _StateID.LEN and len(self.buffer) >= 3:
             self.state.len = struct.unpack('>h', bytes(self.buffer[1 : 3]))[0]
+            self._log('NET', 'len:{}'.format(self.state.len))
             return True
 
         elif self.state.state() == _StateID.STR and len(self.buffer) >= 3 + self.state.len:
             self.state.str = bytes(self.buffer[3 : 3 + self.state.len]).decode('utf-8')
+            self._log('NET', 'str:{}'.format(self.state.str))
             self.process()
             self.buffer = self.buffer[3 + self.state.len : ]
             self.state = _NetworkState()
@@ -81,18 +95,26 @@ class Server(asyncio.Protocol):
 
         try:
             if self.state.header == 1:
+                self._log('DIC', 'restart')
                 left, word, right = self.dicotomix.nextWord(Direction.START)
             elif self.state.header == 2:
+                self._log('DIC', 'go_left')
                 left, word, right = self.dicotomix.nextWord(Direction.LEFT)
             elif self.state.header == 3:
+                self._log('DIC', 'go_right')
                 left, word, right = self.dicotomix.nextWord(Direction.RIGHT)
             elif self.state.header == 4:
+                self._log('DIC', 'discard')
                 left, word, right = self.dicotomix.discard()
             elif self.state.header == 5: # spelling mode
                 self.dicotomix.toggleSpelling()
                 self.spelling = not self.spelling
+                if self.spelling:
+                    self._log('DIC', 'start_spelling')
+                else:
+                    self._log('DIC', 'stop_selling')
                 return
-            elif self.state.header == 6: # add word to the dictionary
+            elif self.state.header == 6: # send users list
                 onlyfiles = [f for f in listdir(DATA_PATH) if isfile(join(DATA_PATH, f))]
                 for f in onlyfiles:
                     name, ext = f.split('.')
@@ -116,31 +138,77 @@ class Server(asyncio.Protocol):
                     DATA_PATH + self.login + '.data'
                 )
 
+                self.words = words
+
+                self.logFile = open(DATA_PATH + self.login + '.log', 'a')
+                self._log('DIC', 'connected:{}'.format(self.login))
+
                 # extract (cumulative frequency, word) from the whole dictionary
-                feed_words = list(map(lambda x: (x[1][0], x[0]), words.items()))
-                feed_letters = list(map(lambda x: (x[1], x[0]), letters.items()))
+                feed_words = dictionary.computeFeed(words)
+                feed_letters = dictionary.computeFeed(letters)
 
                 self.dicotomix = Dicotomix(feed_words, feed_letters)
-                self.words = words
+                return
+            elif self.state.header == 8: # custom word
+                if self.spelling:
+                    return
+
+                self._log('DIC', 'add_word:{}'.format(self.state.str))
+                freq = 1000.
+                normalized = dictionary.normalize(self.state.str)
+                add = False
+                if normalized not in self.words:
+                    self.words[normalized] = [freq, [self.state.str]]
+                    add = True
+                elif self.state.str not in self.words[normalized]:
+                    self.words[normalized][0] += freq
+                    self.words[normalized][1].append(self.state.str)
+                    add = True
+
+                if add:
+                    file = open(DATA_PATH + self.login + '.data', 'a')
+                    file.write('{}|{}|{}|{}|{}\n'.format(
+                        self.state.str,
+                        self.state.str,
+                        'CUSTOM',
+                        freq,
+                        freq
+                    ))
+                    file.close()
+
+                    self.words = OrderedDict(sorted(
+                        self.words.items(),
+                        key = lambda x: x[0]
+                    ))
+                    feed_words = dictionary.computeFeed(self.words)
+                    self.dicotomix.reinit(feed_words)
+                else:
+                    self._log('DIC', 'already_exists')
+
                 return
         except NotFoundException:
+            self._log('DIC', 'not_found_exception')
             if self.spelling:
+                self._log('DIC', 'auto_restart')
                 left, word, right = self.dicotomix.nextWord(Direction.START)
             else:
+                self._log('DIC', 'auto_spelling')
                 dummy = 'a'.encode('utf8')
                 self.transport.write(struct.pack('>h', len(dummy)))
                 self.transport.write(struct.pack('>h', -1)) # ask UI to start spelling mode
                 self.transport.write(dummy)
                 return
         except OrderException:
+            self._log('NET', 'order_exception')
             return
         except AttributeError:
+            self._log('NET', 'attribute_error')
             return
 
-        print('{}, {}, {}'.format(left, word, right))
+        self._log('DIC', 'words:{}:{}:{}'.format(left, word, right))
 
         prefix = _boundPrefix(left, right)
-        print('Prefix: {}'.format(prefix))
+        self._log('DIC', 'prefix:{}'.format(prefix))
 
         data = '\n'.join(filter(lambda x: x[0] != '[' or not self.spelling, self.words[word][1]))
         data = data.encode('utf8')
@@ -150,6 +218,10 @@ class Server(asyncio.Protocol):
         self.transport.write(data)
 
     def connection_lost(self, error):
+        if self.logFile != None:
+            self._log('NET', 'disconnected:{}'.format(self.login))
+            self.logFile.close()
+
         if error:
             print('ERROR: {}'.format(error))
         else:
