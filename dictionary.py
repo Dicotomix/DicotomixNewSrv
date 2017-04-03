@@ -14,17 +14,19 @@ def normalize(word):
 # return:
 # - an ordered Dictionary (normalized word) => [cumulative frequency, [associated words]]
 # - an ordered Dictionary (letter) => cumulative frequency
-def loadDictionary(dictName):
+def loadDictionary(dictName, userName):
     file = open(dictName, 'r')
     lines = file.read()
     lines = list(filter(lambda x: x != '', lines.split('\n')))
+
+    file2 = open(userName, 'r')
+    lines2 = file2.read()
+    lines += list(filter(lambda x: x != '', lines2.split('\n')))
+    
     letters = { }
     words = { }
 
     for line in lines[1:]:
-        if line == '':
-            continue
-
         parameters = line.split('|')
 
         word = parameters[0]
