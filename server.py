@@ -4,7 +4,7 @@ import dictionary
 from os import listdir
 from os.path import isfile, join
 from enum import Enum
-from dicotomix import Dicotomix, Direction, NotFoundException
+from dicotomix import Dicotomix, Direction, NotFoundException, OrderException
 
 def _boundPrefix(left, right):
     k = 0
@@ -105,6 +105,7 @@ class Server(asyncio.Protocol):
             elif self.state.header == 7: # get user name
                 if self.state.str not in self.users:
                     print('Create user ' + self.state.str)
+                    open(DATA_PATH + self.state.str + '.data', 'a').close()
 
                 self.users = self.state.str
                 words, letters = dictionary.loadDictionary(DATA_PATH + 'lexique.csv')
