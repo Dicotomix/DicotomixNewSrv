@@ -1,6 +1,8 @@
 import asyncio
 import struct
 import dictionary
+from os import listdir
+from os.path import isfile, join
 from enum import Enum
 from dicotomix import Dicotomix, Direction, NotFoundException
 
@@ -35,14 +37,8 @@ DATA_PATH = "data/"
 
 class Server(asyncio.Protocol):
     def __init__(self):
-        words, letters = dictionary.loadDictionary(DATA_PATH + 'LexiqueCompletNormalise.csv')
-
-        # extract (cumulative frequency, word) from the whole dictionary
-        feed_words = list(map(lambda x: (x[1][0], x[0]), words.items()))
-        feed_letters = list(map(lambda x: (x[1], x[0]), letters.items()))
-
-        self.dicotomix = Dicotomix(feed_words, feed_letters)
-        self.words = words
+        self.dicotomix = None
+        self.words = None
         self.buffer = []
         self.state = _NetworkState()
         self.spelling = False
@@ -95,14 +91,35 @@ class Server(asyncio.Protocol):
                 self.dicotomix.toggleSpelling()
                 return
             elif self.state.header == 6: # add word to the dictionary
-                pass
+                onlyfiles = [f for f in listdir(DATA_PATH) if isfile(join(mypath, f))]
+                names = []
+                for f in onlyfiles:
+                    name, ext = f.split('.')
+                    if ext == 'data':
+                        names.append(name)
+                data = '\n'.join(names).encode('utf8')
+                self.transport.write(struct.pack('>h'), len(data))
+                self.transport.write(struct.pack('>h'), -1)
+                self.transport.write(data)
+                return
+            elif self.state.header == 7: # get user name
+                words, letters =
+                    dictionary.loadDictionary(DATA_PATH + 'LexiqueCompletNormalise.csv')
+
+                # extract (cumulative frequency, word) from the whole dictionary
+                feed_words = list(map(lambda x: (x[1][0], x[0]), words.items()))
+                feed_letters = list(map(lambda x: (x[1], x[0]), letters.items()))
+
+                self.dicotomix = Dicotomix(feed_words, feed_letters)
+                self.words = words
+                return
         except NotFoundException:
             if self.spelling:
                 left, word, right = self.dicotomix.nextWord(Direction.START)
             else:
                 dummy = 'a'.encode('utf8')
-                self.transport.write(struct.pack(">h", len(dummy)))
-                self.transport.write(struct.pack(">h", -1)) # ask UI to start spelling mode
+                self.transport.write(struct.pack('>h', len(dummy)))
+                self.transport.write(struct.pack('>h', -1)) # ask UI to start spelling mode
                 self.transport.write(dummy)
                 return
         except OrderException:
@@ -116,8 +133,8 @@ class Server(asyncio.Protocol):
         data = '\n'.join(filter(lambda x: x[0] != '[' or not self.spelling, self.words[word][1]))
         data = data.encode('utf8')
 
-        self.transport.write(struct.pack(">h", len(data)))
-        self.transport.write(struct.pack(">h", prefix))
+        self.transport.write(struct.pack('>h', len(data)))
+        self.transport.write(struct.pack('>h', prefix))
         self.transport.write(data)
 
     def connection_lost(self, error):
