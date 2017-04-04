@@ -1,16 +1,12 @@
 #!/usr/bin/python3
 import dictionary
-import tests
 import asyncio
 import functools
 from server import Server
 from dicotomix import Dicotomix
 
-ENABLE_TESTS = False
-SERVER_ADDRESS = ('localhost', 5005)
 
-if ENABLE_TESTS:
-    tests.testAll(Dicotomix(feed_words), feed_words)
+SERVER_ADDRESS = ('localhost', 5005)
 
 eventLoop = asyncio.get_event_loop()
 

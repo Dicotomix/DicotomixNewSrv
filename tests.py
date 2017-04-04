@@ -21,9 +21,13 @@ def testWord(main, targetWord):
 
 def testAll(main, feed):
     total = 0
+    found_in = {}
     for w in feed:
         print('Processing ' + w[1])
         res, count = testWord(main, w[1])
+        if not count in found_in:
+            found_in[count] = []
+        found_in[count].append(w[1])
         total += count
         if not res:
             print('Error: ' + w[1])
@@ -31,3 +35,11 @@ def testAll(main, feed):
         else:
             print(w[1] + ': ' + str(count))
     print('Mean: ' + str(total / len(feed)))
+    f = open('consignes.txt','w')
+    for k in sorted(found_in.keys()):
+        f.write('Words in '+str(k)+' steps:\n')
+        for w in found_in[k]:
+            f.write('\t'+w+'\n')
+        f.write('\n')
+    f.close()
+    print('Consignes edited.')

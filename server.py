@@ -2,11 +2,14 @@ import asyncio
 import struct
 import dictionary
 import datetime
+import tests
 from collections import *
 from os import listdir
 from os.path import isfile, join
 from enum import Enum
 from dicotomix import Dicotomix, Direction, NotFoundException, OrderException
+
+ENABLE_TESTS = False
 
 def _boundPrefix(left, right):
     k = 0
@@ -149,6 +152,8 @@ class Server(asyncio.Protocol):
                 feed_letters = dictionary.computeFeed(letters)
 
                 self.dicotomix = Dicotomix(feed_words, feed_letters)
+                if ENABLE_TESTS:
+                    tests.testAll(Dicotomix(feed_words), feed_words)
                 return
             elif self.state.header == 8: # custom word
                 if self.spelling:
