@@ -9,7 +9,7 @@ from os.path import isfile, join
 from enum import Enum
 from dicotomix import Dicotomix, Direction, NotFoundException, OrderException
 
-ENABLE_TESTS = False
+ENABLE_TESTS = True
 
 def _boundPrefix(left, right):
     k = 0
@@ -153,7 +153,7 @@ class Server(asyncio.Protocol):
 
                 self.dicotomix = Dicotomix(feed_words, feed_letters)
                 if ENABLE_TESTS:
-                    tests.testAll(Dicotomix(feed_words), feed_words)
+                    tests.testAll(Dicotomix(feed_words), feed_words, self.words)
                 return
             elif self.state.header == 8: # custom word
                 if self.spelling:

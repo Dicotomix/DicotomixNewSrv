@@ -19,7 +19,7 @@ def testWord(main, targetWord):
     except NotFoundException:
         return (False, 0)
 
-def testAll(main, feed):
+def testAll(main, feed, equi):
     total = 0
     found_in = {}
     for w in feed:
@@ -39,7 +39,7 @@ def testAll(main, feed):
     for k in sorted(found_in.keys()):
         f.write('Words in '+str(k)+' steps:\n')
         for w in found_in[k]:
-            f.write('\t'+w+'\n')
+            f.write('\t'+equi[w][1][0]+'\n')
         f.write('\n')
     f.close()
     print('Consignes edited.')
