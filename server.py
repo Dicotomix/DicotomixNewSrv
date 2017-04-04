@@ -9,7 +9,7 @@ from os.path import isfile, join
 from enum import Enum
 from dicotomix import Dicotomix, Direction, NotFoundException, OrderException
 
-ENABLE_TESTS = True
+ENABLE_TESTS = False
 
 def _boundPrefix(left, right):
     k = 0
@@ -137,8 +137,8 @@ class Server(asyncio.Protocol):
                     open(DATA_PATH + self.state.str + '.data', 'a').close()
 
                 self.login = self.state.str
-                words, letters = dictionary.loadDictionary(
-                    DATA_PATH + 'lexique.csv',
+                words, letters = dictionary.loadDictionary2(
+                    DATA_PATH + 'new_lexique.csv',
                     DATA_PATH + self.login + '.data'
                 )
 
@@ -156,7 +156,7 @@ class Server(asyncio.Protocol):
                     tests.testAll(Dicotomix(feed_words), feed_words, self.words)
                 return
             elif self.state.header == 8: # custom word
-                if self.spelling:
+                if self.spelling or len(self.state.str) == 0:
                     return
 
                 self._log('DIC', 'add_word:{}'.format(self.state.str))
@@ -166,18 +166,16 @@ class Server(asyncio.Protocol):
                 if normalized not in self.words:
                     self.words[normalized] = [freq, [self.state.str]]
                     add = True
-                elif self.state.str not in self.words[normalized]:
+                elif self.state.str not in self.words[normalized][1]:
                     self.words[normalized][0] += freq
                     self.words[normalized][1].append(self.state.str)
                     add = True
 
                 if add:
                     file = open(DATA_PATH + self.login + '.data', 'a')
-                    file.write('{}|{}|{}|{}|{}\n'.format(
+                    file.write('{}|{}|{}\n'.format(
                         self.state.str,
-                        self.state.str,
-                        'CUSTOM',
-                        freq,
+                        normalized,
                         freq
                     ))
                     file.close()
@@ -216,7 +214,12 @@ class Server(asyncio.Protocol):
         prefix = _boundPrefix(left, right)
         self._log('DIC', 'prefix:{}'.format(prefix))
 
-        data = '\n'.join(filter(lambda x: x[0] != '[' or not self.spelling, self.words[word][1]))
+        if not self.spelling:
+            words = filter(lambda x: len(x) > 1 or x == 'a', self.words[word][1])
+        else:
+            words = filter(lambda x: x[0] != '[', self.words[word][1])
+
+        data = '\n'.join(list(words))
         data = data.encode('utf8')
 
         self.transport.write(struct.pack('>h', len(data)))

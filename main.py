@@ -5,7 +5,6 @@ import functools
 from server import Server
 from dicotomix import Dicotomix
 
-
 SERVER_ADDRESS = ('localhost', 5005)
 
 eventLoop = asyncio.get_event_loop()
