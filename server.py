@@ -215,7 +215,10 @@ class Server(asyncio.Protocol):
         self._log('DIC', 'prefix:{}'.format(prefix))
 
         if not self.spelling:
-            words = filter(lambda x: len(x) > 1 or x == 'a', self.words[word][1])
+            if word != 'a' and word != '.':
+                words = filter(lambda x: len(x) > 1, self.words[word][1])
+            else:
+                words = self.words[word][1]
         else:
             words = filter(lambda x: x[0] != '[', self.words[word][1])
 
