@@ -260,3 +260,4 @@ class Server(asyncio.Protocol):
         else:
             print('Closing connection')
         super().connection_lost(error)
+        exit(0)
