@@ -8,6 +8,7 @@ from os import listdir
 from os.path import isfile, join
 from enum import Enum
 from dicotomix import Dicotomix, Direction, NotFoundException, OrderException
+import unidecode
 
 ENABLE_TESTS = False
 
@@ -144,6 +145,7 @@ class Server(asyncio.Protocol):
 
                 self.words = words
 
+
                 self.logFile = open(DATA_PATH + self.login + '.log', 'a')
                 self._log('DIC', 'connected:{}'.format(self.login))
 
@@ -183,6 +185,7 @@ class Server(asyncio.Protocol):
                     self.words = OrderedDict(sorted(
                         self.words.items(),
                         key = lambda x: x[0]
+
                     ))
                     feed_words = dictionary.computeFeed(self.words)
                     self.dicotomix.reinit(feed_words)
@@ -222,12 +225,30 @@ class Server(asyncio.Protocol):
         else:
             words = filter(lambda x: x[0] != '[', self.words[word][1])
 
-        data = '\n'.join(list(words))
-        data = data.encode('utf8')
+        to_send = list(words)
+        canonique = ''
+        for k in to_send:
+            if len(k) != 1:
+                continue
+            canonique = unidecode.unidecode(k)
+            break
+        i_can = 0
+        for (i,k) in enumerate(to_send):
+            if k == canonique:
+                i_can = i
 
+        to_send[0],to_send[i_can] = to_send[i_can],to_send[0]
+
+        data = '\n'.join(to_send)
+        
+
+        
+
+        data = data.encode('utf8')
         self.transport.write(struct.pack('>h', len(data)))
         self.transport.write(struct.pack('>h', prefix))
         self.transport.write(data)
+
 
     def connection_lost(self, error):
         if self.logFile != None:
