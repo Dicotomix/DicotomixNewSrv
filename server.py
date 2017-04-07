@@ -240,9 +240,6 @@ class Server(asyncio.Protocol):
         to_send[0],to_send[i_can] = to_send[i_can],to_send[0]
 
         data = '\n'.join(to_send)
-        
-
-        
 
         data = data.encode('utf8')
         self.transport.write(struct.pack('>h', len(data)))
