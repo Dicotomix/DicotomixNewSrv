@@ -24,7 +24,7 @@ class Dicotomix:
         self._words = words # words is a (cumulative frequency, word) list
         self._words.insert(0, (0., self._words[0][1])) # add a dummy word with frequency 0. for symmetry
         self._stack = []
-        self._EPSILON = 1. / 50.
+        self._EPSILON = 0
         self._letters = letters
         if self._letters != None:
             self._letters.insert(0, (0., self._letters[0][1]))

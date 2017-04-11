@@ -11,6 +11,8 @@ from dicotomix import Dicotomix, Direction, NotFoundException, OrderException
 import unidecode
 
 ENABLE_TESTS = False
+ENABLE_NGRAMS_LETTER = False
+ENABLE_ELAG = True
 
 def _boundPrefix(left, right):
     k = 0
@@ -137,9 +139,13 @@ class Server(asyncio.Protocol):
                     print('Create user ' + self.state.str)
                     open(DATA_PATH + self.state.str + '.data', 'a').close()
 
+                addenda = ''
+                if ENABLE_ELAG == True:
+                    addenda = '_elag'
+
                 self.login = self.state.str
                 words, letters = dictionary.loadDictionary2(
-                    DATA_PATH + 'new_lexique.csv',
+                    DATA_PATH + 'new_lexique'+addenda+'.csv',
                     DATA_PATH + self.login + '.data'
                 )
 
@@ -153,9 +159,15 @@ class Server(asyncio.Protocol):
                 feed_words = dictionary.computeFeed(words)
                 feed_letters = dictionary.computeFeed(letters)
 
+                #for w in feed_words[:100]:
+                    #print(w)
+
                 self.dicotomix = Dicotomix(feed_words, feed_letters)
                 if ENABLE_TESTS:
                     tests.testAll(Dicotomix(feed_words), feed_words, self.words)
+                if ENABLE_NGRAMS_LETTER:
+                    tests.ngram_letter(Dicotomix(feed_words), feed_words, self.words,0.05)
+                    exit(0)
                 return
             elif self.state.header == 8: # custom word
                 if self.spelling or len(self.state.str) == 0:

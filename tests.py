@@ -1,4 +1,5 @@
 from dicotomix import Direction, NotFoundException
+import numpy as np
 
 def testWord(main, targetWord):
     left, proposedWord, right = main.nextWord(Direction.START)
@@ -42,3 +43,20 @@ def testAll(main, feed, equi):
         f.write('\n')
     f.close()
     print('Consignes edited.')
+
+def ngram_letter(main, feed, equi, ratio):
+    print(len(main._words))
+    new_length = int(len(main._words)*ratio)
+    print(new_length)
+    new_word = []
+    k = []
+    for (i,w) in enumerate(main._words):
+        new_word.append((w[1],main._wordLength(i-1),i))
+        k.append(main._wordLength(i-1))
+    new_word.sort(key=lambda x: x[1], reverse=True)
+    f = open("word_used.txt","w")
+    for w in new_word[:new_length]:
+        f.write(str(w))
+        f.write("\n")
+    f.close()
+    
