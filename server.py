@@ -237,8 +237,7 @@ class Server(asyncio.Protocol):
                 for f,l in new_letters:
                     print(f,l)
 
-                #self.dicotomix._words = new_letters[:]
-                left, word, right = self.dicotomix.nextWord(Direction.START)
+                self.dicotomix._words = new_letters[:]
                 return
         except NotFoundException:
             self._log('DIC', 'not_found_exception')

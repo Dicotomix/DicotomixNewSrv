@@ -40,7 +40,6 @@ class Dicotomix:
         mid = (self._words[left][0] + self._words[right][0]) / 2.0
         randomization = random.uniform(-1, 1) * self._EPSILON
         frequency = mid + (self._words[right][0] - self._words[left][0]) * randomization
-
         cursor = self._findWordIndexFromFrequency(frequency)
         self._stack.append(_State(left, cursor, right))
 
