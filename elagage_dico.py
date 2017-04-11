@@ -19,7 +19,7 @@ quant = np.percentile(k,RATIO)
 selected = []
 for r in l[37:]:
     if r != '':
-        if float(r.split('|')[-1]) >= quant:
+        if float(r.split('|')[-1]) >= quant or len(r.split('|')[0]) == 1:
             selected.append(r)
 
 print(quant)
