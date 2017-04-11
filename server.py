@@ -213,13 +213,13 @@ class Server(asyncio.Protocol):
                 print(spelling_buffer)
                 print(self.dicotomix._words)
                 our_distro = grams[''.join(spelling_buffer[-4:])]
-                default_val = max(1,int(min(list(our_distro.values()))/2))
+                default_val = 1
                 print(our_distro)
                 print(default_val)
                 new_letters = [[0.0,'a']]
                 for f,l in self.dicotomix._words[1:]:
                     if l in our_distro:
-                        new_letters.append([our_distro[l],l])
+                        new_letters.append([our_distro[l]*1000,l])
                     else:
                         new_letters.append([default_val,l])
                 
