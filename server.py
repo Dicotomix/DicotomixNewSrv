@@ -222,14 +222,22 @@ class Server(asyncio.Protocol):
                         new_letters.append([our_distro[l],l])
                     else:
                         new_letters.append([default_val,l])
+                
+                print(new_letters)
+
                 the_sum = 0.0
-                for c in new_letters:
-                    the_sum += float(c[0])
                 for i in range(len(new_letters)):
-                    new_letters[i] = (float(new_letters[i][0])/the_sum,new_letters[i][1])
+                    the_sum += new_letters[i][0]
+                    new_letters[i][0] = the_sum
+                for i in range(len(new_letters)):
+                    new_letters[i][0] /= the_sum
+                for i in range(len(new_letters)):
+                    new_letters[i] = (new_letters[i][0],new_letters[i][1])
+
                 for f,l in new_letters:
                     print(f,l)
-                self.dicotomix._words = new_letters[:]
+
+                #self.dicotomix._words = new_letters[:]
                 left, word, right = self.dicotomix.nextWord(Direction.START)
                 return
         except NotFoundException:

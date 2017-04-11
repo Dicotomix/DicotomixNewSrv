@@ -52,7 +52,7 @@ class Dicotomix:
     def nextWord(self, direction):
         if direction == Direction.START:
             self._stack = []
-            return self._push(0, -1)
+            return self._push(0, len(self._words)-1)
 
         if len(self._stack) == 0:
             raise OrderException
