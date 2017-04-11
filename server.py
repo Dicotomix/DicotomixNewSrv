@@ -11,8 +11,10 @@ from dicotomix import Dicotomix, Direction, NotFoundException, OrderException
 import unidecode
 
 ENABLE_TESTS = False
-ENABLE_NGRAMS_LETTER = False
-ENABLE_ELAG = True
+ENABLE_NGRAMS_LETTER = True
+ENABLE_ELAG = False
+grams = {}
+spelling_buffer = []
 
 def _boundPrefix(left, right):
     k = 0
@@ -95,6 +97,7 @@ class Server(asyncio.Protocol):
         return False
 
     def process(self):
+        global spelling_buffer, grams
         left = None
         word = None
         right = None
@@ -115,6 +118,7 @@ class Server(asyncio.Protocol):
             elif self.state.header == 5: # spelling mode
                 self.dicotomix.toggleSpelling()
                 self.spelling = not self.spelling
+                spelling_buffer = []
                 if self.spelling:
                     self._log('DIC', 'start_spelling')
                 else:
@@ -166,8 +170,7 @@ class Server(asyncio.Protocol):
                 if ENABLE_TESTS:
                     tests.testAll(Dicotomix(feed_words), feed_words, self.words)
                 if ENABLE_NGRAMS_LETTER:
-                    tests.ngram_letter(Dicotomix(feed_words), feed_words, self.words,0.05)
-                    exit(0)
+                    grams = tests.ngram_letter(Dicotomix(feed_words), feed_words, self.words)
                 return
             elif self.state.header == 8: # custom word
                 if self.spelling or len(self.state.str) == 0:
@@ -205,6 +208,30 @@ class Server(asyncio.Protocol):
                     self._log('DIC', 'already_exists')
 
                 return
+            elif self.state.header == 9: #validate letter in spelling mode
+                spelling_buffer.append(self.state.str)
+                print(spelling_buffer)
+                print(self.dicotomix._words)
+                our_distro = grams[''.join(spelling_buffer[-4:])]
+                default_val = max(1,int(min(list(our_distro.values()))/2))
+                print(our_distro)
+                print(default_val)
+                new_letters = [[0.0,'a']]
+                for f,l in self.dicotomix._words[1:]:
+                    if l in our_distro:
+                        new_letters.append([our_distro[l],l])
+                    else:
+                        new_letters.append([default_val,l])
+                the_sum = 0.0
+                for c in new_letters:
+                    the_sum += float(c[0])
+                for i in range(len(new_letters)):
+                    new_letters[i] = (float(new_letters[i][0])/the_sum,new_letters[i][1])
+                for f,l in new_letters:
+                    print(f,l)
+                self.dicotomix._words = new_letters[:]
+                left, word, right = self.dicotomix.nextWord(Direction.START)
+                return
         except NotFoundException:
             self._log('DIC', 'not_found_exception')
             if self.spelling:
@@ -236,6 +263,9 @@ class Server(asyncio.Protocol):
                 words = self.words[word][1]
         else:
             words = filter(lambda x: x[0] != '[', self.words[word][1])
+
+        if self.spelling:
+            print(spelling_buffer)
 
         to_send = list(words)
         canonique = ''

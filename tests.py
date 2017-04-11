@@ -44,19 +44,26 @@ def testAll(main, feed, equi):
     f.close()
     print('Consignes edited.')
 
-def ngram_letter(main, feed, equi, ratio):
-    print(len(main._words))
-    new_length = int(len(main._words)*ratio)
-    print(new_length)
+def ngram_letter(main, feed, equi):
     new_word = []
-    k = []
+
     for (i,w) in enumerate(main._words):
         new_word.append((w[1],main._wordLength(i-1),i))
-        k.append(main._wordLength(i-1))
-    new_word.sort(key=lambda x: x[1], reverse=True)
-    f = open("word_used.txt","w")
-    for w in new_word[:new_length]:
-        f.write(str(w))
-        f.write("\n")
-    f.close()
+    
+    gram = {}
+    for k in range(2,6):
+        for w,f,i in new_word:
+            s = []
+            for l in w:
+                s.append(l)
+                if len(s) == k:
+                    ss = ''.join(s[:-1])
+                    if not ss in gram:
+                        gram[ss] = {}
+                    if not s[-1] in gram[ss]:
+                        gram[ss][s[-1]] = 0
+                    gram[ss][s[-1]] += 1
+                    del s[0]
+    return gram
+
     
