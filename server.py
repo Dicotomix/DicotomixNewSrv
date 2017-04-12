@@ -15,6 +15,7 @@ ENABLE_NGRAMS_LETTER = True
 ENABLE_ELAG = False
 grams = {}
 spelling_buffer = []
+default_letters = []
 
 def _boundPrefix(left, right):
     k = 0
@@ -97,7 +98,7 @@ class Server(asyncio.Protocol):
         return False
 
     def process(self):
-        global spelling_buffer, grams
+        global spelling_buffer, grams, default_letters
         left = None
         word = None
         right = None
@@ -120,8 +121,10 @@ class Server(asyncio.Protocol):
                 self.spelling = not self.spelling
                 spelling_buffer = []
                 if self.spelling:
+                    default_letters = self.dicotomix._words
                     self._log('DIC', 'start_spelling')
                 else:
+                    self.dicotomix._letters = default_letters[:]
                     self._log('DIC', 'stop_selling')
                 return
             elif self.state.header == 6: # send users list
@@ -212,32 +215,38 @@ class Server(asyncio.Protocol):
                 spelling_buffer.append(self.state.str)
                 print(spelling_buffer)
                 print(self.dicotomix._words)
-                our_distro = grams[''.join(spelling_buffer[-4:])]
-                default_val = 1
-                print(our_distro)
-                print(default_val)
-                new_letters = [[0.0,'a']]
-                for f,l in self.dicotomix._words[1:]:
-                    if l in our_distro:
-                        new_letters.append([our_distro[l]*1000,l])
-                    else:
-                        new_letters.append([default_val,l])
-                
-                print(new_letters)
 
-                the_sum = 0.0
-                for i in range(len(new_letters)):
-                    the_sum += new_letters[i][0]
-                    new_letters[i][0] = the_sum
-                for i in range(len(new_letters)):
-                    new_letters[i][0] /= the_sum
-                for i in range(len(new_letters)):
-                    new_letters[i] = (new_letters[i][0],new_letters[i][1])
+                the_end = ''.join(spelling_buffer[-4:])
 
-                for f,l in new_letters:
-                    print(f,l)
+                if the_end in grams:
+                    our_distro = grams[the_end]
+                    default_val = 1
+                    print(our_distro)
+                    print(default_val)
+                    new_letters = [[0.0,'a']]
+                    for f,l in self.dicotomix._words[1:]:
+                        if l in our_distro:
+                            new_letters.append([our_distro[l]*1000,l])
+                        else:
+                            new_letters.append([default_val,l])
+                    
+                    print(new_letters)
 
-                self.dicotomix._words = new_letters[:]
+                    the_sum = 0.0
+                    for i in range(len(new_letters)):
+                        the_sum += new_letters[i][0]
+                        new_letters[i][0] = the_sum
+                    for i in range(len(new_letters)):
+                        new_letters[i][0] /= the_sum
+                    for i in range(len(new_letters)):
+                        new_letters[i] = (new_letters[i][0],new_letters[i][1])
+
+                    for f,l in new_letters:
+                        print(f,l)
+
+                    self.dicotomix._words = new_letters[:]
+                else:
+                    self.dicotomix._words = default_letters[:]
                 return
         except NotFoundException:
             self._log('DIC', 'not_found_exception')
