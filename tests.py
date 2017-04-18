@@ -1,5 +1,7 @@
 from dicotomix import Direction, NotFoundException
 import numpy as np
+import pickle
+import os.path
 
 def testWord(main, targetWord):
     left, proposedWord, right = main.nextWord(Direction.START)
@@ -47,23 +49,37 @@ def testAll(main, feed, equi):
 def ngram_letter(main, feed, equi):
     new_word = []
 
+    max_l = 0
     for (i,w) in enumerate(main._words):
+        max_l = max(max_l, len(w[1]))
         new_word.append((w[1],main._wordLength(i-1),i))
-    
-    gram = {}
-    for k in range(2,6):
-        for w,f,i in new_word:
-            s = []
-            for l in w:
-                s.append(l)
-                if len(s) == k:
-                    ss = ''.join(s[:-1])
-                    if not ss in gram:
-                        gram[ss] = {}
-                    if not s[-1] in gram[ss]:
-                        gram[ss][s[-1]] = 0
-                    gram[ss][s[-1]] += 1
-                    del s[0]
+    print("Longest word length: "+str(max_l))
+
+    if os.path.isfile("grams.pkl"):
+        print("Loading n-grams...")
+        gram = pickle.load(open("grams.pkl","rb"))
+        print("Done")
+    else:
+        print("Computing n-grams...")
+        gram = {}
+        for k in range(2,max_l):
+            print("n="+str(k))
+            for w,f,i in new_word:
+                s = []
+                if len(w) < k:
+                    continue
+                for l in w:
+                    s.append(l)
+                    if len(s) == k:
+                        ss = ''.join(s[:-1])
+                        if not ss in gram:
+                            gram[ss] = {}
+                        if not s[-1] in gram[ss]:
+                            gram[ss][s[-1]] = 0
+                        gram[ss][s[-1]] += 1
+                        del s[0]
+        pickle.dump(gram,open("grams.pkl","wb"))
+        print("Done and saved")
     return gram
 
     

@@ -9,6 +9,8 @@ from os.path import isfile, join
 from enum import Enum
 from dicotomix import Dicotomix, Direction, NotFoundException, OrderException
 import unidecode
+import sys
+import numpy as np
 
 ENABLE_TESTS = False
 ENABLE_NGRAMS_LETTER = True
@@ -106,13 +108,14 @@ class Server(asyncio.Protocol):
         try:
             if self.state.header == 1:
                 self._log('DIC', 'restart')
-                left, word, right = self.dicotomix.nextWord(Direction.START)
+                left, word, right = self.dicotomix.nextWord(Direction.START, self.spelling)
+                print("ICI: ",len(self.dicotomix._words))
             elif self.state.header == 2:
                 self._log('DIC', 'go_left')
-                left, word, right = self.dicotomix.nextWord(Direction.LEFT)
+                left, word, right = self.dicotomix.nextWord(Direction.LEFT, self.spelling)
             elif self.state.header == 3:
                 self._log('DIC', 'go_right')
-                left, word, right = self.dicotomix.nextWord(Direction.RIGHT)
+                left, word, right = self.dicotomix.nextWord(Direction.RIGHT, self.spelling)
             elif self.state.header == 4:
                 self._log('DIC', 'discard')
                 left, word, right = self.dicotomix.discard()
@@ -125,6 +128,7 @@ class Server(asyncio.Protocol):
                     self._log('DIC', 'start_spelling')
                 else:
                     self.dicotomix._letters = default_letters[:]
+                    self._EPSILON2 = self._FIRST_EPSILON2
                     self._log('DIC', 'stop_selling')
                 return
             elif self.state.header == 6: # send users list
@@ -214,7 +218,14 @@ class Server(asyncio.Protocol):
             elif self.state.header == 9: #validate letter in spelling mode
                 spelling_buffer.append(self.state.str)
                 print(spelling_buffer)
-                print(self.dicotomix._words)
+
+                H = 0.0
+                for (i,w) in enumerate(self.dicotomix._words[1:]):
+                    print(w[1],self.dicotomix._wordLength(i))
+                    H += self.dicotomix._wordLength(i)*np.log(self.dicotomix._wordLength(i))
+                H /= -np.log(26)
+                print("Old H: ", H)
+                
 
                 the_end = ''.join(spelling_buffer[-4:])
 
@@ -230,7 +241,10 @@ class Server(asyncio.Protocol):
                         else:
                             new_letters.append([default_val,l])
                     
-                    print(new_letters)
+                    to_print = new_letters[:]
+                    to_print.sort(reverse=True, key=lambda x: x[0])
+                    for a in to_print:
+                        print(a[1], a[0])
 
                     the_sum = 0.0
                     for i in range(len(new_letters)):
@@ -241,10 +255,19 @@ class Server(asyncio.Protocol):
                     for i in range(len(new_letters)):
                         new_letters[i] = (new_letters[i][0],new_letters[i][1])
 
-                    for f,l in new_letters:
-                        print(f,l)
+                    #for f,l in new_letters:
+                        #print(f,l)
 
                     self.dicotomix._words = new_letters[:]
+
+                    H = 0.0
+                    for (i,w) in enumerate(self.dicotomix._words[1:]):
+                        print(w[1],self.dicotomix._wordLength(i))
+                        H += self.dicotomix._wordLength(i)*np.log(self.dicotomix._wordLength(i))
+                    H /= -np.log(26)
+                    self.dicotomix._EPSILON2 = 1-H
+                    print("New H: ", H)
+
                 else:
                     self.dicotomix._words = default_letters[:]
                 return
